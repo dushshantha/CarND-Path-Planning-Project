@@ -7,6 +7,9 @@ Self-Driving Car Engineer Nanodegree Program
 [image2]: ./images/FiniteStateMachine.jpg "FSM"
 [image3]: ./images/CrossingTheMiles.png "Cross Miles"
 
+
+![Working Sample][image1] 
+
 ### Goals of the project
 
 * Drive a car safely around a highway without any incident
@@ -20,7 +23,50 @@ You can download the Term3 Simulator which contains the Path Planning Project fr
 You can refer to the project rubix [here](https://review.udacity.com/#!/rubrics/1020/view)
 
 
-![Working Sample][image1] 
+### Implementation Details
+
+This project is implemented in a simple one source file. The entire logic is implemented inside the main function of the main.cpp file between lines 313 to 558. The implemation is based on Finite State Machine(FMS) architecture. FMS uses 2 simple cost functions in order to choose the optimal next state.
+
+### Finite State Machine
+
+![FSM][image2]
+
+The image above describe the Finite State Machine used in this implementation. It includes 3 states. Keep Lane(KL), Lane Change Left (LCL) and Lane Change Right (LCR).
+
+#### Keep Lane
+This is the initial state of the machine. According to the associated cost of the next state, this state can stay the same or change to 2 other states LCL and LCR. The KL state will remain still unless changing to any other state is safe and less costly than maintaining the KL state.  Once the Initial KL state change to LCL or LCR, the machine can return to KL state by keeping the same that It changed to. 
+
+#### LCL
+This is the State that Machine can change from KL state. In this action, the vehivle will change lane to the left, in our case, the more desirable state change. Once the vehicle moved to the left lane, it can return to KL state where it keeps the left lane untill a lower cost action available. 
+
+#### LCR
+This is the State that Machine can change from KL state. In this action, the vehivle will change lane to the right. Once the vehicle moved to the right lane, it can return to KL state where it keeps the right lane untill a lower cost action available. 
+
+### Cost Functions
+In this implementation, We use only 2 simple cost functions. 
+
+#### Speed Cost
+The implementation of this cost functions can be found in the lines 176 - 183 in the main.cpp. Here, the vehicle is penalizes for taking lower speeds. The desirable speed is closer to the spped limit. In this case, The desirable speed is 49.5. 
+
+#### Lane cost
+The implementation of this cost function can be found in the lines 187 - 199 in main.cpp. Here, Vehicle will be encourage to use the leftmost lane whenever possible. This lane is the fastest lane, hense the most efficient. 
+
+The total cost will the total of these 2 cost functions and the vehicle will choose the lowest cost state as the next bext action to perform. 
+
+The function get_cost() in lines 201 to 273 uses a little bit of logic to call these cost functions for given action/state. This function will return a highest possoble cost if a given action is impossible or not safe. 
+
+### Path Generation and Speed Control
+
+#### Path Generation
+
+Once the desired action was choosen from the previous section, 3 waypoints are generated in the desired trajectory, each 30m apart. Then we use these 3 waypoints to generate a spline using the [spline library](http://kluge.in-chemnitz.de/opensource/spline/) to generate smooth transitioning points in between the main 3 waypoints. Another option is to generate polynomials for the 3 waypoints as discussed in the class. ( Lines 451 - 558 in main.cpp)
+
+#### Speed Control
+
+We graduallt increase or decrease the speed from current speed to the reference velocity from the increments of 0.225 to void jerk and exceeding the max acceleration of the vehicle. 
+
+
+Below are few details to build the project yourself. 
 
 #### The map of the highway is in data/highway_map.txt
 Each waypoint in the list contains  [x,y,s,dx,dy] values. x and y are the waypoint's map coordinate position, the s value is the distance along the road to get to that waypoint in meters, the dx and dy values define the unit normal vector pointing outward of the highway loop.
